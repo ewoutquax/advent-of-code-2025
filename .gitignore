@@ -1,0 +1,6 @@
+bin/
+tmp/
+tags
+internal/day-00
+get-my-input.sh
+input.txt
