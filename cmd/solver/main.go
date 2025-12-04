@@ -9,6 +9,7 @@ import (
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-01-secret-entrance"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-02-gift-shop"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-03-lobby"
+	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-04-printing-department"
 	"github.com/ewoutquax/advent-of-code-2025/pkg/register"
 )
 
