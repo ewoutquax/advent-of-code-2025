@@ -4,7 +4,7 @@ init:
 	go mod tidy
 	go mod download
 	go install github.com/nikolaydubina/go-cover-treemap@latest
-	go get golang.org/x/tools/gopls@latest
+	go install golang.org/x/tools/gopls@latest
 
 clean:
 	go clean
