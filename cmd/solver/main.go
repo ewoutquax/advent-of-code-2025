@@ -11,7 +11,7 @@ import (
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-03-lobby"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-04-printing-department"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-05-cafetaria"
-	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-06-trash-compactor"
+	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-07-laboratories"
 	"github.com/ewoutquax/advent-of-code-2025/pkg/register"
 )
 
