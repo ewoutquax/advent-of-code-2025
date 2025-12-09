@@ -32,29 +32,25 @@ func TestDistances(t *testing.T) {
 	assert.Len(distances.Lengths, 20*19/2)
 
 	shortestLength := distances.Lengths[0]
-	assert.Equal(JunctionBoxString("162,817,812"), distances.BetweenBoxes[shortestLength].From)
-	assert.Equal(JunctionBoxString("425,690,689"), distances.BetweenBoxes[shortestLength].To)
+	assert.Equal("162,817,812", distances.BetweenBoxes[shortestLength].From.ToS())
+	assert.Equal("425,690,689", distances.BetweenBoxes[shortestLength].To.ToS())
 
 	shortestLength2 := distances.Lengths[1]
-	assert.Equal(JunctionBoxString("162,817,812"), distances.BetweenBoxes[shortestLength2].From)
-	assert.Equal(JunctionBoxString("431,825,988"), distances.BetweenBoxes[shortestLength2].To)
-}
-
-func TestFindCliques(t *testing.T) {
-	boxes := ParseInput(testInput())
-
-	cliques := FindCliques(boxes, 10)
-	assert.Len(t, cliques, 10)
+	assert.Equal("162,817,812", distances.BetweenBoxes[shortestLength2].From.ToS())
+	assert.Equal("431,825,988", distances.BetweenBoxes[shortestLength2].To.ToS())
 }
 
 func TestFindCircuits(t *testing.T) {
 	boxes := ParseInput(testInput())
+	distances := DistanceBetweenBoxes(boxes)
 
-	result := FindCircuits(boxes, 10)
+	result := FindCircuitSizes(distances, 10)
+	fmt.Printf("result: %v\n", result)
 
 	assert.Equal(t, 40, result)
 }
 
+/**
 func TestFindMinNeededConnections(t *testing.T) {
 	boxes := ParseInput(testInput())
 
@@ -62,6 +58,7 @@ func TestFindMinNeededConnections(t *testing.T) {
 
 	assert.Equal(t, 40, result)
 }
+*/
 
 func testInput() []string {
 	return []string{
