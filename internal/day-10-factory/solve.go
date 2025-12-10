@@ -20,7 +20,50 @@ type (
 	Universe struct {
 		Machines []Machine
 	}
+	Path struct {
+		currentLights        string
+		ButtonCombinations   [][]int
+		NrButtonCombinations int
+	}
 )
+
+type PathHeap []Path
+
+func (h PathHeap) Len() int           { return len(h) }
+func (h PathHeap) Less(i, j int) bool { return h[i].NrButtonCombinations < h[j].NrButtonCombinations }
+func (h PathHeap) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+func (h *PathHeap) Push(x any)        { *h = append(*h, x.(Path)) }
+
+func (h *PathHeap) Pop() any {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+
+func PressButtons(lightString string, buttons []int) string {
+	var lights = strings.Split(lightString, "")
+
+	for _, idx := range buttons {
+		if lights[idx] == "." {
+			lights[idx] = "#"
+		} else {
+			lights[idx] = "."
+		}
+	}
+
+	return strings.Join(lights, "")
+}
+
+func FindNrButtonCombinations(machine Machine) int {
+	paths := make([]Path, 0)
+	paths = append(paths, Path{})
+
+	pathHeap = make(pathHeap, 0)
+
+	return 0
+}
 
 func ParseInput(lines []string) Universe {
 	var machines = make([]Machine, len(lines))

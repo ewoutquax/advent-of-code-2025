@@ -36,12 +36,28 @@ func TestPressButtons(t *testing.T) {
 	}
 
 	testCases := map[*Input]string{
-		{"....", []int{3}}: "...#",
+		{"....", []int{3}}:           "...#",
+		{"...#", []int{3}}:           "....",
+		{".#.#", []int{2}}:           ".###",
+		{".#.#.", []int{1, 2, 3, 4}}: "..#.#",
 	}
 
 	for input, expectedResult := range testCases {
 		actualResult := PressButtons(input.lights, input.buttons)
 		assert.Equal(t, expectedResult, actualResult)
+	}
+}
+
+func TestMachineFindNrButtonsCombinations(t *testing.T) {
+	universe := ParseInput(testInput())
+
+	testCases := map[*Machine]int{
+		&universe.Machines[0]: 2,
+	}
+
+	for inputMachine, expectedNrCombinations := range testCases {
+		actualNrCombinations := FindNrButtonCombinations(*inputMachine)
+		assert.Equal(t, expectedNrCombinations, actualNrCombinations)
 	}
 }
 
