@@ -13,6 +13,7 @@ import (
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-05-cafetaria"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-07-laboratories"
 	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-11-reactor"
+	_ "github.com/ewoutquax/advent-of-code-2025/internal/day-12-christmas-tree-farm"
 	"github.com/ewoutquax/advent-of-code-2025/pkg/register"
 )
 
