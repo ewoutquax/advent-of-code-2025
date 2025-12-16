@@ -2,13 +2,16 @@ package day10factory
 
 import (
 	"container/heap"
+	"errors"
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
 
 	"github.com/ewoutquax/advent-of-code-2025/pkg/register"
 	"github.com/ewoutquax/advent-of-code-2025/pkg/utils"
+	"golang.org/x/text/currency"
 )
 
 const Day string = "10"
@@ -155,7 +158,7 @@ func SumMinNrButtonCombinationsForJoltages(u Universe) int {
 	var sum int = 0
 
 	for idx, machine := range u.Machines {
-		count := FindNrButtonCombinationsForJoltage(machine)
+		count, _ := FindNrButtonCombinationsForJoltage(machine)
 		sum += count
 		fmt.Printf("(%d/%d) count: %v\n", idx, len(u.Machines), count)
 	}
@@ -163,45 +166,93 @@ func SumMinNrButtonCombinationsForJoltages(u Universe) int {
 	return sum
 }
 
-func FindNrButtonCombinationsForJoltage(machine Machine) int {
-	visitedJoltages := make(map[string]struct{})
-	var pathHeap = make(PathJoltageHeap, 0)
+func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
+	if machine.Joltages.isDone() {
+		return 0, nil
+	}
 
-	heap.Init(&pathHeap)
-	heap.Push(&pathHeap, PathJoltage{
-		currentJoltages:      machine.Joltages,
-		NrButtonCombinations: 0,
-		TotalRanking:         0,
-	})
+	if !machine.Joltages.isValid() {
+		return 0, errors.New("Invalid joltages received")
+	}
 
-	for len(pathHeap) > 0 {
-		currentPath := heap.Pop(&pathHeap).(PathJoltage)
-		// fmt.Printf(
-		// 	"currentPath after %d steps: %v\n",
-		// 	currentPath.NrButtonCombinations,
-		// 	currentPath.currentJoltages,
-		// )
+	if len(machine.ButtonCombinations) == 0 {
+		return 0, errors.New("No combinations remaining")
+	}
 
-		for idx, nextCombination := range machine.ButtonCombinations {
-			newPath := PathJoltage{
-				currentJoltages:      PressButtonsForJoltages(currentPath.currentJoltages, nextCombination),
-				NrButtonCombinations: currentPath.NrButtonCombinations + 1,
-				TotalRanking:         machine.CombinationRanking[idx],
-			}
+	var lowestJoltage int = math.MaxInt
+	var idxLowestJoltage int = 0
 
-			if newPath.currentJoltages.isDone() {
-				return newPath.NrButtonCombinations
-			}
-
-			hash := newPath.currentJoltages.toHash()
-			if _, ok := visitedJoltages[hash]; !ok && newPath.currentJoltages.isValid() {
-				visitedJoltages[hash] = struct{}{}
-				heap.Push(&pathHeap, newPath)
-			}
+	// Find the lowest joltage
+	for idx, joltage := range machine.Joltages {
+		if lowestJoltage > joltage {
+			lowestJoltage = joltage
+			idxLowestJoltage = idx
 		}
 	}
 
-	panic("No solution found")
+	// Find the combinations using this button
+	var applicableCombinations = make([]ButtonCombination, 0)
+	var remainingCombinations = make([]ButtonCombination, 0)
+	for _, combination := range machine.ButtonCombinations {
+		if slices.Contains(combination, idxLowestJoltage) {
+			applicableCombinations = append(applicableCombinations, combination)
+		} else {
+			remainingCombinations = append(remainingCombinations, combination)
+		}
+	}
+
+	// This variable holds the amount each applicable combination is used, and should always sum to the lowestJoltage
+	var currentDistribution = make([]int, len(applicableCombinations))
+
+	// Internal function to find all applicable combinations
+	var increaseAtIndex func(int, int) int
+	increaseAtIndex = func(idx int, toSpend int) int {
+		if currentDistribution[idx] > lowestJoltage || currentDistribution[idx] > toSpend {
+			localToSpend := toSpend + currentDistribution[idx]
+			remainingToSpend := increaseAtIndex(idx, localToSpend)
+
+			return remainingToSpend
+		}
+		currentDistribution[idx]++
+
+		return toSpend - 1
+	}
+
+	// Iterate through all possible distributions of combinations that sum to the lowest joltage
+	for currentDistribution[len(currentDistribution)-1] <= lowestJoltage {
+		remaining := lowestJoltage
+
+		if len(applicableCombinations) > 0 {
+			// There are multiple combinations; let's increase each of them in turn
+			sum := 0
+			for idx := 1; idx < len(currentDistribution); idx++ {
+				sum += currentDistribution[idx]
+			}
+			remaining = increaseAtIndex(1, lowestJoltage-sum)
+		}
+		currentDistribution[0] = remaining
+
+		// Apply the combinations in the currentCombination, with their current number of occurences
+		for idxCombination, count := range currentDistribution {
+			newMachine := Machine{
+				Lights:             "",
+				ButtonCombinations: remainingCombinations,
+				Joltages:           make(Joltages, 0),
+			}
+			for _, idxButton := range applicableCombinations[idxCombination] {
+
+			}
+		}
+
+		// If we found a solution, return the number of combinations we used... which is equal to the lowestJoltage
+		if false {
+			return lowestJoltage
+		}
+
+		// Recursively call this function until no solution is possible, or we found a solution
+	}
+
+	return 0, errors.New("No solution possible")
 }
 
 func FindNrButtonCombinationsForLights(machine Machine) int {
@@ -302,8 +353,19 @@ func parseMachine(line string) Machine {
 		combinationRanking[idx] = ranking
 	}
 
+	var offset int = 99999
+	for _, r := range combinationRanking {
+		offset = min(offset, r)
+	}
+
+	offsettedRanking := make([]int, len(combinationRanking))
+	for idx, ranking := range combinationRanking {
+		offsettedRanking[idx] = ranking - offset
+	}
+
 	fmt.Printf("groupedButtons: %v\n", groupedButtons)
 	fmt.Printf("combinationRanking: %v\n", combinationRanking)
+	fmt.Printf("offsettedRanking: %v\n", offsettedRanking)
 
 	partJoltages := parts[len(parts)-1]
 	partJoltages = partJoltages[1 : len(partJoltages)-1]
@@ -320,7 +382,7 @@ func parseMachine(line string) Machine {
 		Lights:             lights,
 		ButtonCombinations: buttons,
 		Joltages:           joltages,
-		CombinationRanking: combinationRanking,
+		CombinationRanking: offsettedRanking,
 	}
 }
 
