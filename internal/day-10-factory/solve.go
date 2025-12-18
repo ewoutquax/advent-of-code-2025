@@ -33,6 +33,7 @@ type (
 		NrButtonCombinations int
 		TotalRanking         int
 	}
+	PathJoltageHeap []PathJoltage
 
 	PathLight struct {
 		currentLights        string
@@ -56,8 +57,6 @@ func (h *PathLightHeap) Pop() any {
 	*h = old[0 : n-1]
 	return x
 }
-
-type PathJoltageHeap []PathJoltage
 
 func (h PathJoltageHeap) Len() int { return len(h) }
 func (h PathJoltageHeap) Less(i, j int) bool {
@@ -170,14 +169,17 @@ func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
 	fmt.Printf("machine.Joltages: %v\n", machine.Joltages)
 
 	if machine.Joltages.isDone() {
+		fmt.Println("We found a solution: return steps: 0")
 		return 0, nil
 	}
 
 	if !machine.Joltages.isValid() {
+		fmt.Printf("machine.Joltages: %v is called with invalid (negative) values\n", machine.Joltages)
 		return 0, errors.New("Invalid joltages received")
 	}
 
 	if len(machine.ButtonCombinations) == 0 {
+		fmt.Printf("machine.Joltages: %v is called without any combinations\n", machine.Joltages)
 		return 0, errors.New("No combinations remaining")
 	}
 
@@ -205,6 +207,10 @@ func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
 	}
 	fmt.Printf("applicableCombinations (combinations using this button): %v\n", applicableCombinations)
 
+	if len(applicableCombinations) == 0 {
+		return 0, errors.New("No combinations remaining")
+	}
+
 	// This variable holds the amount each applicable combination is used, and should always sum to the lowestJoltage
 	var currentDistribution = make([]int, len(applicableCombinations))
 	currentDistribution[0] = lowestJoltage
@@ -227,7 +233,9 @@ func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
 	// Iterate through all possible distributions of combinations that sum to the lowest joltage
 	var minNrSteps int = math.MaxInt
 	var isSolutionFound bool = false
-	for currentDistribution[len(currentDistribution)-1] < lowestJoltage {
+	var runAtLeastOnce bool = true
+	for runAtLeastOnce || currentDistribution[len(currentDistribution)-1] < lowestJoltage {
+		runAtLeastOnce = false
 		fmt.Printf("currentDistribution (how many times are we using each of the applicableCombinations): %v\n", currentDistribution)
 
 		// Apply the combinations in the currentCombination, with their current number of occurences
@@ -250,15 +258,20 @@ func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
 		}
 
 		// Recursively call this function until no solution is possible, or a solution is found
+		fmt.Println("Start recursion")
 		nrSubSteps, err := FindNrButtonCombinationsForJoltage(newMachine)
-		if err != nil {
+		fmt.Println("Returned from recursion")
+		if err == nil {
+			fmt.Printf("lowest nrSubSteps: %v\n", nrSubSteps)
 			minNrSteps = min(minNrSteps, nrSubSteps)
 			isSolutionFound = true
+		} else {
+			fmt.Printf("err: %v\n", err)
 		}
 
 		// Determine the next distribution of applicable combinations
 		remaining := lowestJoltage
-		if len(applicableCombinations) > 0 {
+		if len(applicableCombinations) > 1 {
 			// There are multiple combinations; let's increase each of them in turn
 			toSpend := lowestJoltage
 			for idx := 1; idx < len(currentDistribution); idx++ {
@@ -275,6 +288,7 @@ func FindNrButtonCombinationsForJoltage(machine Machine) (int, error) {
 		return lowestJoltage + minNrSteps, nil
 	}
 
+	fmt.Println("All distributions of applicableCombinations exhausted, but no solution is found")
 	return 0, errors.New("No solution possible")
 }
 
